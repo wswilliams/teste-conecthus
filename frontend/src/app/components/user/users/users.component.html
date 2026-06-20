@@ -1,0 +1,62 @@
+<h1 style="text-align: center;">Gerenciar Usuários</h1>
+
+<div class="users-header">
+  <mat-form-field>
+    <mat-label>Filtrar por Usuário</mat-label>
+    <input matInput type="text" [ngModel]="filterValue"
+    (input)="onFilterChange($event.target.value)" placeholder="Buscar Usuário">
+  </mat-form-field>
+  <button mat-raised-button color="primary" (click)="createNewUser()">+ Novo Usuário</button>
+</div>
+
+<div *ngIf="dataSource">
+    <mat-table [dataSource]="dataSource.items">
+        <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+        <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+
+        <ng-container matColumnDef="id">
+            <mat-header-cell *matHeaderCellDef mat-sort-header>Id</mat-header-cell>
+            <mat-cell *matCellDef="let row">{{row.id}}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+            <mat-header-cell *matHeaderCellDef mat-sort-header>Nome</mat-header-cell>
+            <mat-cell *matCellDef="let row">{{row.name}}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="username">
+            <mat-header-cell *matHeaderCellDef mat-sort-header>Usuário</mat-header-cell>
+            <mat-cell *matCellDef="let row">{{row.username}}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="email">
+            <mat-header-cell *matHeaderCellDef mat-sort-header>E-mail</mat-header-cell>
+            <mat-cell *matCellDef="let row">{{row.email}}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="role">
+            <mat-header-cell *matHeaderCellDef mat-sort-header>Permissão</mat-header-cell>
+            <mat-cell *matCellDef="let row">{{row.role}}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+            <mat-header-cell *matHeaderCellDef>Ações</mat-header-cell>
+            <mat-cell *matCellDef="let row" class="actions-cell">
+                <button mat-icon-button color="primary" (click)="editUser(row.id)" matTooltip="Editar">
+                    <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="deleteUser(row.id)" matTooltip="Deletar">
+                    <mat-icon>delete</mat-icon>
+                </button>
+            </mat-cell>
+        </ng-container>
+    </mat-table>
+    
+    <mat-paginator 
+        [length]="dataSource.meta.totalItems" 
+        [pageSize]="dataSource.meta.itemsPerPage" 
+        [pageSizeOptions]="[5,10,25,100]"
+        (page)="pageEvent = $event; onPaginateChange($event)"
+        showFirstLastButtons>
+    </mat-paginator>
+</div>

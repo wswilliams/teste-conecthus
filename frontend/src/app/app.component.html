@@ -1,0 +1,13 @@
+<mat-toolbar *ngIf="isAuthenticated" color="primary">
+  <mat-toolbar-row>
+    <span routerLink="/home" class="home-link">Home</span>
+    <span class="example-spacer"></span>
+    <button mat-flat-button routerLink="users">Users</button>
+    <mat-form-field style="margin-left: 20px;" name="loginRegisterDropdown">
+      <mat-select placeholder="Logout">
+        <mat-option (click)="logout()">Sair</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </mat-toolbar-row>
+</mat-toolbar>
+<router-outlet></router-outlet>

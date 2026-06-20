@@ -1,0 +1,36 @@
+.home-page {
+  min-height: calc(100vh - 64px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: linear-gradient(180deg, #eef2ff 0%, #f8fafc 100%);
+}
+
+.home-card {
+  max-width: 760px;
+  width: 100%;
+  padding: 2.5rem 2rem;
+  border-radius: 28px;
+  background: #ffffff;
+  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.12);
+  text-align: center;
+}
+
+.home-card h1 {
+  margin: 0 0 1rem;
+  font-size: clamp(2.4rem, 2.2vw, 3.4rem);
+  color: #0f172a;
+  line-height: 1.05;
+}
+
+.home-card p {
+  margin: 0.75rem 0;
+  font-size: clamp(1rem, 1.05vw, 1.2rem);
+  color: #475569;
+  line-height: 1.8;
+}
+
+.home-card p:last-child {
+  margin-bottom: 0;
+}

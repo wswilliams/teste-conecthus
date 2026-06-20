@@ -1,0 +1,31 @@
+<div *ngIf="(user$ | async) as user" class="main-div">
+    <mat-card class="card">
+        <mat-card-header>
+            <div mat-card-avatar>
+                <img src="{{origin}}/api/users/profile-image/{{user.profileImage}}" class="header-image">
+            </div>
+            <mat-card-title>{{user.name}}</mat-card-title>
+            <mat-card-subtitle>{{user.email}}</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+            <p>Username: {{user.username}}</p>
+            <p>Role: {{user.role}}</p>
+            <h2>Usuários paginados</h2>
+            <ng-container *ngIf="users$ | async as users">
+                <ul>
+                    <li *ngFor="let u of users.items">
+                        {{u.name}} ({{u.username}}) - {{u.email}}
+                    </li>
+                </ul>
+
+                <mat-paginator
+                    [length]="users.meta.totalItems"
+                    [pageSize]="pageSize"
+                    [pageIndex]="pageIndex"
+                    [pageSizeOptions]="[5, 10, 20]"
+                    (page)="onPaginateChange($event)">
+                </mat-paginator>
+            </ng-container>
+        </mat-card-content>
+    </mat-card>
+</div>
