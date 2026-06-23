@@ -69,7 +69,7 @@ export function connectToTaskNotifications({ userId, onMessage, onStateChange })
         keepAliveInterval: 30,
         onSuccess: () => {
           onStateChange?.('connected');
-          client.subscribe(topic, { qos: 0 });
+          client.subscribe(topic, { qos: 1 });
         },
         onFailure: () => {
           index += 1;

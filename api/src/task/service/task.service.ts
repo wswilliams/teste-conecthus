@@ -22,9 +22,10 @@ export class TaskService {
       switchMap((createdTask: Task) =>
         from(this.redisService.delByPattern('task:list:*')).pipe(
           map(() => {
-            this.mqttService.enqueueTaskCreatedNotification(task.userId, {
+            this.mqttService.enqueueTaskCreatedNotification(createdTask.userId, {
               event: 'task.created',
               taskId: createdTask.id,
+              userId: createdTask.userId,
               title: createdTask.title,
               status: createdTask.status,
               createat: createdTask.createat,

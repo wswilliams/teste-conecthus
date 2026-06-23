@@ -70,6 +70,7 @@ describe('TaskService', () => {
     expect(mqttMock.enqueueTaskCreatedNotification).toHaveBeenCalledWith(7, {
       event: 'task.created',
       taskId: 1,
+      userId: 7,
       title: 'Nova tarefa',
       status: 'open',
       createat: createdTask.createat,

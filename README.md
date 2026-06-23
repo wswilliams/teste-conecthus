@@ -111,18 +111,19 @@ http://localhost:4200
 cd mobile
 npm install
 npm run start
+npx expo start --web --clear
 ```
 
 Isso inicia o servidor de desenvolvimento do Expo. Use o aplicativo Expo Go no Android ou iOS para escanear o QR code exibido no terminal ou no Expo DevTools.
 
-Se estiver usando um dispositivo físico, verifique se ele consegue acessar os endereços da API e do broker MQTT configurados em `mobile/app.json`.
+Se estiver usando um dispositivo físico, verifique se ele consegue acessar os endereços da API e do broker MQTT configurados em `mobile/app.json`. Variavel: `apiUrl` atualmente estar IP fixo modifique e adicione o IP da sua REDE
 
 ### Mobile na Web
 
 ```bash
 cd mobile
 npm install
-npm run web
+npm run web or npx expo start --web --clear
 ```
 
 Isso abre o aplicativo mobile no navegador com o Expo Web. Se o navegador não abrir automaticamente, use a URL local exibida pelo Expo no terminal.
