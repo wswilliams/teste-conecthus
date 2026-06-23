@@ -1,38 +1,51 @@
 # Test Conecthus
 
-A full-stack application built with **Angular 20**, **NestJS 11**, and **Node.js 20**, fully containerized using Docker.
-# Test Conecthus
+Uma aplicação full-stack com frontend web, aplicativo mobile e backend NestJS, totalmente conteinerizada com Docker.
 
-A full-stack application built with **React + Vite**, **NestJS 11**, and **Node.js 20**, fully containerized using Docker.
-
-## Tech Stack
-
-### Frontend
-
-* React 18
-* Vite 5
-* JavaScript (ES Modules)
+## Tecnologias Utilizadas
 
 ### Backend
 
 * NestJS 11
 * Node.js 20
 * TypeScript
+* Prisma ORM
+* PostgreSQL
+* Redis
+* MQTT
+
+### Frontend Web
+
+* React 18
+* Vite 5
+* JavaScript (ES Modules)
+* React Router DOM
+
+### Mobile
+
+* Expo 54
+* React Native 0.81
+* React 19
+* React Navigation
+* Async Storage
+* Paho MQTT
 
 ### DevOps
 
 * Docker
 * Docker Compose
+* Mosquitto MQTT Broker
 
-### Testing
+### Testes
 
 * Cypress (End-to-End Tests)
+* Jest
 
 ---
 
-## Prerequisites
+## Pré-requisitos
 
-Before running the project, make sure the following tools are installed:
+Antes de rodar o projeto, verifique se as seguintes ferramentas estão instaladas:
 
 * Docker 24+
 * Docker Compose
@@ -41,17 +54,17 @@ Before running the project, make sure the following tools are installed:
 
 ---
 
-## Running the Application
+## Como Rodar a Aplicação
 
-### Using Docker (Recommended)
+### Usando Docker (Recomendado)
 
-Start all services:
+Inicie todos os serviços:
 
 ```bash
 docker compose up --build -d
 ```
 
-Once the containers are running, access the application at:
+Depois que os containers estiverem em execução, acesse a aplicação em:
 
 ```text
 http://localhost:4200
@@ -59,7 +72,7 @@ http://localhost:4200
 
 ---
 
-## Running Locally
+## Execução Local
 
 ### Backend
 
@@ -69,10 +82,10 @@ npm install
 npm run start:dev
 ```
 
-Backend will be available at swagger ui:
+O backend estará disponível no Swagger UI:
 
 ```text
-lhttp://localhost:3000/api
+http://localhost:3000/api
 ```
 
 ---
@@ -86,17 +99,41 @@ npm run build
 npm run start
 ```
 
-Frontend will be available at:
+O frontend estará disponível em:
 
 ```text
 http://localhost:4200
 ```
 
+### Mobile
+
+```bash
+cd mobile
+npm install
+npm run start
+```
+
+Isso inicia o servidor de desenvolvimento do Expo. Use o aplicativo Expo Go no Android ou iOS para escanear o QR code exibido no terminal ou no Expo DevTools.
+
+Se estiver usando um dispositivo físico, verifique se ele consegue acessar os endereços da API e do broker MQTT configurados em `mobile/app.json`.
+
+### Mobile na Web
+
+```bash
+cd mobile
+npm install
+npm run web
+```
+
+Isso abre o aplicativo mobile no navegador com o Expo Web. Se o navegador não abrir automaticamente, use a URL local exibida pelo Expo no terminal.
+
+O aplicativo mobile se conecta ao backend e ao broker MQTT configurados em `mobile/app.json`.
+
 ---
 
-## End-to-End Testing
+## Testes End-to-End
 
-### Open Cypress
+### Abrir o Cypress
 
 ```bash
 cd e2e
@@ -104,7 +141,7 @@ npm install
 npm run cypress:open
 ```
 
-### Generate HTML Test Report
+### Gerar relatório HTML de testes
 
 ```bash
 npm run cypress:report
@@ -112,21 +149,21 @@ npm run cypress:report
 
 ---
 
-## Docker Maintenance
+## Manutenção do Docker
 
-### Remove All Containers
+### Remover todos os containers
 
 ```bash
 docker rm -vf $(docker ps -aq)
 ```
 
-### Remove All Images
+### Remover todas as imagens
 
 ```bash
 docker rmi -f $(docker images -aq)
 ```
 
-### Remove Unused Resources
+### Remover recursos não utilizados
 
 ```bash
 docker system prune -af
@@ -134,29 +171,32 @@ docker system prune -af
 
 ---
 
-## Project Structure
+## Estrutura do Projeto
 
 ```text
 .
-├── api/          # NestJS backend
-├── frontend/     # Angular frontend
-├── e2e/          # Cypress tests
+├── api/          # Backend NestJS
+├── frontend/     # Frontend web com React + Vite
+├── mobile/       # Aplicativo mobile com Expo e React Native
+├── e2e/          # Testes com Cypress
 ├── docker-compose.yml
 └── README.md
 ```
 
 ---
 
-## Development Notes
+## Observações de Desenvolvimento
 
-* Frontend runs on port **4200**
-* Backend runs on port **3000**
-* Frontend app supports login, users CRUD, and tasks CRUD integrated with the API
-* Docker Compose starts all required services
-* Cypress tests are located in the `e2e` directory
+* O frontend roda na porta **4200**
+* O backend roda na porta **3000**
+* O app mobile roda via Expo e usa o broker MQTT na porta **9001**
+* O app web suporta login, CRUD de usuários e CRUD de tarefas integrados à API
+* O app mobile suporta login, listagem de tarefas, criação de tarefas e notificações via MQTT
+* O Docker Compose inicia todos os serviços necessários
+* Os testes Cypress ficam no diretório `e2e`
 
 ---
 
-## Author
+## Autor
 
-Developed as part of the Conecthus technical assessment.
+Desenvolvido como parte do processo técnico da Conecthus.
