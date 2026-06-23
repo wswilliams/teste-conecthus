@@ -105,13 +105,12 @@ O frontend estará disponível em:
 http://localhost:4200
 ```
 
-### Mobile
+### Mobile Expo go
 
 ```bash
 cd mobile
 npm install
-npm run start
-npx expo start --web --clear
+npx expo start --clear
 ```
 
 Isso inicia o servidor de desenvolvimento do Expo. Use o aplicativo Expo Go no Android ou iOS para escanear o QR code exibido no terminal ou no Expo DevTools.
@@ -176,7 +175,7 @@ docker system prune -af
 
 ```text
 .
-├── api/          # Backend NestJS
+├── api/          # Backend NestJS + Prisma e PostgreSQL
 ├── frontend/     # Frontend web com React + Vite
 ├── mobile/       # Aplicativo mobile com Expo e React Native
 ├── e2e/          # Testes com Cypress
@@ -191,6 +190,7 @@ docker system prune -af
 * O frontend roda na porta **4200**
 * O backend roda na porta **3000**
 * O app mobile roda via Expo e usa o broker MQTT na porta **9001**
+* O app mobile roda  na web em http://localhost:8081/
 * O app web suporta login, CRUD de usuários e CRUD de tarefas integrados à API
 * O app mobile suporta login, listagem de tarefas, criação de tarefas e notificações via MQTT
 * O Docker Compose inicia todos os serviços necessários
