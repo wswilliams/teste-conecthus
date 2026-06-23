@@ -10,6 +10,11 @@ export interface User {
     profileImage?: string;
 }
 
+export interface UserSelectItem {
+    id: number;
+    name: string;
+}
+
 export enum UserRole {
     ADMIN = 'admin',
     CHIEFEDITOR = 'chiefeditor',    

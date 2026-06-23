@@ -1,14 +1,13 @@
-# Stage 1: build
 FROM node:20 AS development
 
 WORKDIR /ws/frontend/src/app
 
 COPY package*.json ./
 
-RUN npm install --legacy-peer-deps
+RUN npm install
 
 COPY . .
 
-RUN npm run build
-
 EXPOSE 4200
+
+CMD ["npm", "run", "start"]

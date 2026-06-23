@@ -20,7 +20,7 @@ async function bootstrap() {
   // Configure Swagger Options
   const config = new DocumentBuilder()
     .setTitle('NestJS CRUD API')
-    .setDescription('The TypeORM CRUD API documentation')
+    .setDescription('The Prisma CRUD API documentation')
     .setVersion('1.0')
     .addBearerAuth(
       { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },

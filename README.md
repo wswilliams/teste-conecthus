@@ -1,14 +1,17 @@
 # Test Conecthus
 
 A full-stack application built with **Angular 20**, **NestJS 11**, and **Node.js 20**, fully containerized using Docker.
+# Test Conecthus
+
+A full-stack application built with **React + Vite**, **NestJS 11**, and **Node.js 20**, fully containerized using Docker.
 
 ## Tech Stack
 
 ### Frontend
 
-* Angular 20
-* TypeScript
-* RxJS
+* React 18
+* Vite 5
+* JavaScript (ES Modules)
 
 ### Backend
 
@@ -148,6 +151,7 @@ docker system prune -af
 
 * Frontend runs on port **4200**
 * Backend runs on port **3000**
+* Frontend app supports login, users CRUD, and tasks CRUD integrated with the API
 * Docker Compose starts all required services
 * Cypress tests are located in the `e2e` directory
 

@@ -1,107 +1,186 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from '../models/user.entity';
-import { Repository, Like } from 'typeorm';
-import { User, UserRole } from '../models/user.interface';
+import { User, UserRole, UserSelectItem } from '../models/user.interface';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { LoginUserDto } from '../dto/login-user.dto';
 import { UpdateUserRoleDto } from '../dto/update-role.dto';
-import { Observable, from, throwError } from 'rxjs';
-import { switchMap, map, catchError} from 'rxjs/operators';
+import { Observable, from, of } from 'rxjs';
+import { switchMap, map, catchError } from 'rxjs/operators';
 import { AuthService } from 'src/auth/services/auth.service';
-import {paginate, Pagination, IPaginationOptions} from 'nestjs-typeorm-paginate';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { RedisService } from 'src/redis/redis.service';
+import { Pagination, IPaginationOptions } from '../models/pagination.interface';
 
 @Injectable()
 export class UserService {
 
     constructor(
-        @InjectRepository(UserEntity) private readonly userRepository: Repository<UserEntity>,
+        private readonly prisma: PrismaService,
+        private readonly redisService: RedisService,
         private authService: AuthService
     ) {}
 
     create(user: CreateUserDto): Observable<User> {
         return this.authService.hashPassword(user.password).pipe(
             switchMap((passwordHash: string) => {
-                const newUser = new UserEntity();
-                newUser.name = user.name;
-                newUser.username = user.username;
-                newUser.email = user.email;
-                newUser.password = passwordHash;
-                newUser.role = UserRole.USER;
-
-                return from(this.userRepository.save(newUser)).pipe(
-                    map((user: User) => {
+                return from(this.prisma.user.create({
+                    data: {
+                        name: user.name,
+                        username: user.username,
+                        email: user.email.toLowerCase(),
+                        password: passwordHash,
+                        role: UserRole.USER as any,
+                    }
+                })).pipe(
+                    map((createdUser) => {
+                        const user = createdUser as unknown as User;
                         const {password, ...result} = user;
                         return result;
                     }),
-                    catchError(err => throwError(err))
+                    catchError((err) => {
+                        throw err;
+                    })
                 )
             })
         )
     }
 
     findOneBy(id: number): Observable<User> {
-        return from(this.userRepository.findOneBy({id})).pipe(
-            map((user: User) => {
-                const {password, ...result} = user;
-                return result;
-            } )
-        )
-    }
+        const cacheKey = this.buildUserProfileCacheKey(id);
 
-    findAll(): Observable<User[]> {
-        return from(this.userRepository.find()).pipe(
-            map((users: User[]) => {
-                users.forEach(function (v) {delete v.password});
-                return users;
+        return from(this.redisService.getJson<User>(cacheKey)).pipe(
+            switchMap((cachedUser) => {
+                if (cachedUser) {
+                    return of(cachedUser);
+                }
+
+                return from(this.prisma.user.findUnique({
+                    where: { id },
+                    select: {
+                        id: true,
+                        name: true,
+                        username: true,
+                        email: true,
+                        role: true,
+                        profileImage: true,
+                    }
+                })).pipe(
+                    map((foundUser) => {
+                        const user = foundUser as unknown as User;
+                        const {password, ...result} = user;
+                        return result as User;
+                    }),
+                    switchMap((user) => {
+                        if (!user) {
+                            return of(user);
+                        }
+
+                        return from(this.redisService.setJson(cacheKey, user, 300)).pipe(
+                            map(() => user)
+                        );
+                    })
+                );
             })
         );
     }
 
+    findAll(): Observable<User[]> {
+        return from(this.prisma.user.findMany({
+            orderBy: { id: 'asc' },
+            select: {
+                id: true,
+                name: true,
+                username: true,
+                email: true,
+                role: true,
+                profileImage: true,
+            }
+        })).pipe(map((users) => users as unknown as User[]));
+    }
+
+    findAllForSelect(): Observable<UserSelectItem[]> {
+        return from(this.prisma.user.findMany({
+            orderBy: { name: 'asc' },
+            select: {
+                id: true,
+                name: true,
+            }
+        })).pipe(map((users) => users as UserSelectItem[]));
+    }
+
     paginate(options: IPaginationOptions): Observable<Pagination<User>> {
-        return from(paginate<User>(this.userRepository, options)).pipe(
-            map((usersPageable: Pagination<User>) => {
-                usersPageable.items.forEach(function (v) {delete v.password});
-                return usersPageable;
-            })
-        )
+        const page = Number(options.page) || 1;
+        const limit = Number(options.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        return from(
+            Promise.all([
+                this.prisma.user.findMany({
+                    skip,
+                    take: limit,
+                    orderBy: { id: 'asc' },
+                    select: {
+                        id: true,
+                        name: true,
+                        username: true,
+                        email: true,
+                        role: true,
+                        profileImage: true,
+                    }
+                }),
+                this.prisma.user.count()
+            ])
+        ).pipe(
+            map(([users, totalUsers]) => this.buildPaginationResponse(users as unknown as User[], totalUsers, options))
+        );
     }
 
     paginateFilterByUsername(options: IPaginationOptions, user: { username?: string }): Observable<Pagination<User>>{
-        return from(this.userRepository.findAndCount({
-            skip: Number(options.page) * Number(options.limit) || 0,
-            take: Number(options.limit) || 10,
-            order: {id: "ASC"},
-            select: ['id', 'name', 'username', 'email', 'role'],
-            where: [
-                { username: Like(`%${user.username}%`)}
-            ]
-        })).pipe(
-            map(([users, totalUsers]) => {
-                const usersPageable: Pagination<User> = {
-                    items: users,
-                    links: {
-                        first: options.route + `?limit=${options.limit}`,
-                        previous: options.route + ``,
-                        next: options.route + `?limit=${options.limit}&page=${Number(options.page) + 1}`,
-                        last: options.route + `?limit=${options.limit}&page=${Math.ceil(totalUsers / Number(options.limit))}`
+        const page = Number(options.page) || 1;
+        const limit = Number(options.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        return from(
+            Promise.all([
+                this.prisma.user.findMany({
+                    skip,
+                    take: limit,
+                    orderBy: { id: 'asc' },
+                    where: {
+                        username: {
+                            contains: user.username || '',
+                            mode: 'insensitive'
+                        }
                     },
-                    meta: {
-                        currentPage: Number(options.page),
-                        itemCount: users.length,
-                        itemsPerPage: Number(options.limit),
-                        totalItems: totalUsers,
-                        totalPages: Math.ceil(totalUsers / Number(options.limit))
+                    select: {
+                        id: true,
+                        name: true,
+                        username: true,
+                        email: true,
+                        role: true,
+                        profileImage: true,
                     }
-                };              
-                return usersPageable;
-            })
+                }),
+                this.prisma.user.count({
+                    where: {
+                        username: {
+                            contains: user.username || '',
+                            mode: 'insensitive'
+                        }
+                    }
+                })
+            ])
+        ).pipe(
+            map(([users, totalUsers]) => this.buildPaginationResponse(users as unknown as User[], totalUsers, options))
         )
     }
 
     deleteOne(id: number): Observable<any> {
-        return from(this.userRepository.delete(id));
+        return from(this.prisma.user.delete({ where: { id } })).pipe(
+            switchMap((deletedUser) => from(this.redisService.del(this.buildUserProfileCacheKey(id))).pipe(
+                map(() => deletedUser)
+            ))
+        );
     }
 
     updateOne(id: number, user: UpdateUserDto): Observable<any> {
@@ -110,30 +189,59 @@ export class UserService {
         delete updateData.password;
         delete updateData.role;
 
-        return from(this.userRepository.update(id, updateData)).pipe(
-            switchMap(() => this.findOneBy(id))
+        return from(this.prisma.user.update({
+            where: { id },
+            data: updateData,
+            select: {
+                id: true,
+                name: true,
+                username: true,
+                email: true,
+                role: true,
+                profileImage: true,
+            }
+        })).pipe(
+            switchMap((updatedUser) => from(this.redisService.del(this.buildUserProfileCacheKey(id))).pipe(
+                map(() => updatedUser)
+            ))
         );
     }
 
     updateRoleOfUser(id: number, user: UpdateUserRoleDto): Observable<any> {
-        return from(this.userRepository.update(id, user));
+        return from(this.prisma.user.update({
+            where: { id },
+            data: { role: user.role as any },
+            select: {
+                id: true,
+                name: true,
+                username: true,
+                email: true,
+                role: true,
+                profileImage: true,
+            }
+        })).pipe(
+            switchMap((updatedUser) => from(this.redisService.del(this.buildUserProfileCacheKey(id))).pipe(
+                map(() => updatedUser)
+            ))
+        );
     }
 
     login(user: LoginUserDto): Observable<string> {
         return this.validateUser(user.email, user.password).pipe(
-            switchMap((user: User) => {
+            switchMap((validatedUser) => {
+                const user = validatedUser as User;
                 if(user) {
                     return this.authService.generateJWT(user).pipe(map((jwt: string) => jwt));
                 } else {
-                    return 'Wrong Credentials';
+                    return of('Wrong Credentials');
                 }
             })
         )
     }
 
     validateUser(email: string, password: string): Observable<User> {
-        return from(this.userRepository.findOne({
-            where: { email },
+        return from(this.prisma.user.findUnique({
+            where: { email: email.toLowerCase() },
             select: {
                 id: true,
                 name: true,
@@ -144,7 +252,8 @@ export class UserService {
                 profileImage: true
             }
         })).pipe(
-            switchMap((user: User) => {
+            switchMap((foundUser) => {
+                const user = foundUser as unknown as User;
                 if (!user || !user.password) {
                     throw Error;
                 }
@@ -164,6 +273,35 @@ export class UserService {
     }
 
     findByMail(email: string): Observable<User> {
-        return from(this.userRepository.findOneBy({email}));
+        return from(this.prisma.user.findUnique({
+            where: { email: email.toLowerCase() }
+        })).pipe(map((user) => user as unknown as User));
+    }
+
+    private buildPaginationResponse(users: User[], totalUsers: number, options: IPaginationOptions): Pagination<User> {
+        const page = Number(options.page) || 1;
+        const limit = Number(options.limit) || 10;
+        const totalPages = Math.ceil(totalUsers / limit) || 1;
+
+        return {
+            items: users,
+            links: {
+                first: `${options.route}?limit=${limit}&page=1`,
+                previous: page > 1 ? `${options.route}?limit=${limit}&page=${page - 1}` : '',
+                next: page < totalPages ? `${options.route}?limit=${limit}&page=${page + 1}` : '',
+                last: `${options.route}?limit=${limit}&page=${totalPages}`
+            },
+            meta: {
+                currentPage: page,
+                itemCount: users.length,
+                itemsPerPage: limit,
+                totalItems: totalUsers,
+                totalPages
+            }
+        };
+    }
+
+    private buildUserProfileCacheKey(id: number): string {
+        return `user:profile:${id}`;
     }
 }

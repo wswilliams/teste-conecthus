@@ -1,14 +1,14 @@
 import { Controller, Post, Body, Get, Param, Delete, Put, UseGuards, Query } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { UserService } from '../service/user.service';
-import { User, UserRole } from '../models/user.interface';
+import { User, UserRole, UserSelectItem } from '../models/user.interface';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { LoginUserDto } from '../dto/login-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-guard';
-import { Pagination } from 'nestjs-typeorm-paginate';
+import { Pagination } from '../models/pagination.interface';
 import { UserIsUserGuard } from 'src/auth/guards/UserIsUser.guard';
 
 @Controller('users')
@@ -31,6 +31,13 @@ export class UserController {
                 return { access_token: jwt };
             })
         )
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('select')
+    @ApiBearerAuth('JWT')
+    findAllForSelect(): Observable<UserSelectItem[]> {
+        return this.userService.findAllForSelect();
     }
 
     @UseGuards(JwtAuthGuard)
