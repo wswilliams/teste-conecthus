@@ -19,7 +19,7 @@ describe('Users Page', () => {
     });
 
     it('should filter users by Username', () => {
-        cy.get('[placeholder="Search Username"]').type('Thomas');
+        cy.get('[placeholder="Search Username"]').type('ws');
         cy.get('mat-table').find('mat-row').should('have.length', 4);
     });
 

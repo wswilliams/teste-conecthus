@@ -99,7 +99,7 @@
               "fail": false,
               "pending": false,
               "context": null,
-              "code": "cy.get('[placeholder=\"Search Username\"]').type('Thomas');\ncy.get('mat-table').find('mat-row').should('have.length', 4);",
+              "code": "cy.get('[placeholder=\"Search Username\"]').type('ws');\ncy.get('mat-table').find('mat-row').should('have.length', 4);",
               "err": {},
               "uuid": "81fc1e5e-acaa-4661-b601-d6e786264de0",
               "parentUUID": "673b1a25-5d9e-4abe-860d-3a935bc0015b",

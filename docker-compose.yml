@@ -6,8 +6,8 @@ services:
       context: ./api
       target: development
     volumes:
-      - ./api:/thomas/src/app
-      - /thomas/src/app/node_modules
+      - ./api:/ws/src/app
+      - /ws/src/app/node_modules
     command: sh -c "npx prisma migrate deploy && npm run start:debug"
     depends_on:
       postgres:
